@@ -571,13 +571,13 @@ func main() {
 			return err
 		}
 
-		event, err := getEvent(eventID, user.ID)
-		if err != nil {
+		var publicFg bool
+		if err := db.QueryRow("SELECT public_fg FROM events WHERE id = ?", eventID).Scan(&publicFg); err != nil {
 			if err == sql.ErrNoRows {
 				return resError(c, "invalid_event", 404)
 			}
 			return err
-		} else if !event.PublicFg {
+		} else if !publicFg {
 			return resError(c, "invalid_event", 404)
 		}
 
@@ -588,7 +588,7 @@ func main() {
 		var sheet Sheet
 		var reservationID int64
 		for {
-			if err := db.QueryRow("SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ? ORDER BY RAND() LIMIT 1", event.ID, params.Rank).Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
+			if err := db.QueryRow("SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ? ORDER BY RAND() LIMIT 1", eventID, params.Rank).Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
 				if err == sql.ErrNoRows {
 					return resError(c, "sold_out", 409)
 				}
@@ -600,8 +600,22 @@ func main() {
 				return err
 			}
 
-			res, err := tx.Exec("INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)", event.ID, sheet.ID, user.ID, time.Now().UTC().Format("2006-01-02 15:04:05.000000"))
+			var reservartionNum int
+			if err := tx.QueryRow("SELECT reservartion_num FROM events WHERE id = ? FOR UPDATE", eventID).Scan(&reservartionNum); err != nil {
+				return err
+			} else if reservartionNum < 1 {
+				return resError(c, "sold_out", 409)
+			}
+
+			reservartionNum--
+			res, err := tx.Exec("UPDATE events SET reservartion_num = ? WHERE id = ?", reservartionNum, eventID)
 			if err != nil {
+				tx.Rollback()
+				log.Println("re-try: rollback by", err)
+				continue
+			}
+
+			if _, err := tx.Exec("INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)", eventID, sheet.ID, user.ID, time.Now().UTC().Format("2006-01-02 15:04:05.000000")); err != nil {
 				tx.Rollback()
 				log.Println("re-try: rollback by", err)
 				continue
@@ -639,13 +653,13 @@ func main() {
 			return err
 		}
 
-		event, err := getEvent(eventID, user.ID)
-		if err != nil {
+		var publicFg bool
+		if err := db.QueryRow("SELECT public_fg FROM events WHERE id = ?", eventID).Scan(&publicFg); err != nil {
 			if err == sql.ErrNoRows {
 				return resError(c, "invalid_event", 404)
 			}
 			return err
-		} else if !event.PublicFg {
+		} else if !publicFg {
 			return resError(c, "invalid_event", 404)
 		}
 
@@ -667,7 +681,7 @@ func main() {
 		}
 
 		var reservation Reservation
-		if err := tx.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE", event.ID, sheet.ID).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
+		if err := tx.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE", eventID, sheet.ID).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
 			tx.Rollback()
 			if err == sql.ErrNoRows {
 				return resError(c, "not_reserved", 400)
@@ -680,6 +694,17 @@ func main() {
 		}
 
 		if _, err := tx.Exec("UPDATE reservations SET canceled_at = ? WHERE id = ?", time.Now().UTC().Format("2006-01-02 15:04:05.000000"), reservation.ID); err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		var reservartionNum int
+		if err := tx.QueryRow("SELECT reservartion_num FROM events WHERE id = ? FOR UPDATE", eventID).Scan(&reservartionNum); err != nil {
+			return err
+		}
+
+		reservartionNum++
+		if _, err := tx.Exec("UPDATE events SET reservartion_num = ? WHERE id = ?", reservartionNum, eventID); err != nil {
 			tx.Rollback()
 			return err
 		}
