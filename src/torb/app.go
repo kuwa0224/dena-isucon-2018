@@ -40,6 +40,7 @@ type Event struct {
 	Total   int                `json:"total"`
 	Remains int                `json:"remains"`
 	Sheets  map[string]*Sheets `json:"sheets,omitempty"`
+	ReservartionNum int `json:"reservartion_num"`
 }
 
 type Sheets struct {
@@ -209,10 +210,18 @@ func getEvents(all bool) ([]*Event, error) {
 		events = append(events, &event)
 	}
 	for i, v := range events {
-		event, err := getEvent(v.ID, -1)
+		event, err := getEventForTop(v.ID, -1)
 		if err != nil {
 			return nil, err
 		}
+
+		event.Sheets["S"].Price = event.Price + 5000
+		event.Sheets["A"].Price = event.Price + 3000
+		event.Sheets["B"].Price = event.Price + 1000
+		event.Sheets["C"].Price = event.Price
+
+		event.Remains = event.ReservartionNum
+
 		for k := range event.Sheets {
 			event.Sheets[k].Detail = nil
 		}
@@ -220,6 +229,15 @@ func getEvents(all bool) ([]*Event, error) {
 	}
 	return events, nil
 }
+
+func getEventForTop(eventID, loginUserID int64) (*Event, error) {
+	var event Event
+	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
+		return nil, err
+	}
+	return &event, nil
+}
+
 
 func getEvent(eventID, loginUserID int64) (*Event, error) {
 	var event Event
