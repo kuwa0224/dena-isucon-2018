@@ -217,9 +217,16 @@ func getEvents(all bool) ([]*Event, error) {
 		event.Sheets["B"].Price = event.Price + 1000
 		event.Sheets["C"].Price = event.Price
 
+		event.Sheets["S"].Total = 50
 		event.Sheets["S"].Remains = 50 - event.ReservartionNum_S
+
+		event.Sheets["A"].Total = 150
 		event.Sheets["A"].Remains = 150 - event.ReservartionNum_A
+
+		event.Sheets["B"].Total = 300
 		event.Sheets["B"].Remains = 300 - event.ReservartionNum_B
+
+		event.Sheets["C"].Total = 500
 		event.Sheets["C"].Remains = 500 - event.ReservartionNum_C
 		event.Remains = event.Sheets["S"].Remains + event.Sheets["A"].Remains + event.Sheets["B"].Remains + event.Sheets["C"].Remains
 
