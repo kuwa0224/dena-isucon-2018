@@ -207,13 +207,6 @@ func getEvents(all bool) ([]*Event, error) {
 		if !all && !event.PublicFg {
 			continue
 		}
-		events = append(events, &event)
-	}
-	for i, v := range events {
-		var event *Event
-		if err := db.QueryRow("SELECT * FROM events WHERE id = ?", v.ID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
-			return nil, err
-		}
 
 		event.Sheets["S"].Price = event.Price + 5000
 		event.Sheets["A"].Price = event.Price + 3000
@@ -225,7 +218,8 @@ func getEvents(all bool) ([]*Event, error) {
 		for k := range event.Sheets {
 			event.Sheets[k].Detail = nil
 		}
-		events[i] = event
+
+		events = append(events, &event)
 	}
 	return events, nil
 }
