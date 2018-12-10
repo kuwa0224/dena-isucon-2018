@@ -607,14 +607,30 @@ func main() {
 			}
 
 			var reservartionNum int
-			if err := tx.QueryRow("SELECT reservartion_num FROM events WHERE id = ? FOR UPDATE", eventID).Scan(&reservartionNum); err != nil {
+			if err := tx.QueryRow(fmt.Sprintf("SELECT reservartion_num_%s FROM events WHERE id = ? FOR UPDATE", strings.ToLower(sheet.Rank)), eventID).Scan(&reservartionNum); err != nil {
 				return err
-			} else if reservartionNum < 1 {
-				return resError(c, "sold_out", 409)
+			}
+			switch sheet.Rank {
+			case "S":
+				if reservartionNum >= 50 {
+					return resError(c, "sold_out", 409)
+				}
+			case "A":
+				if reservartionNum >= 150 {
+					return resError(c, "sold_out", 409)
+				}
+			case "B":
+				if reservartionNum >= 300 {
+					return resError(c, "sold_out", 409)
+				}
+			case "C":
+				if reservartionNum >= 500 {
+					return resError(c, "sold_out", 409)
+				}
 			}
 
-			reservartionNum--
-			res, err := tx.Exec("UPDATE events SET reservartion_num = ? WHERE id = ?", reservartionNum, eventID)
+			reservartionNum++
+			res, err := tx.Exec(fmt.Sprintf("UPDATE events SET reservartion_num_%s = ? WHERE id = ?", strings.ToLower(sheet.Rank)), reservartionNum, eventID)
 			if err != nil {
 				tx.Rollback()
 				log.Println("re-try: rollback by", err)
@@ -705,12 +721,12 @@ func main() {
 		}
 
 		var reservartionNum int
-		if err := tx.QueryRow("SELECT reservartion_num FROM events WHERE id = ? FOR UPDATE", eventID).Scan(&reservartionNum); err != nil {
+		if err := tx.QueryRow(fmt.Sprintf("SELECT reservartion_num_%s FROM events WHERE id = ? FOR UPDATE", strings.ToLower(sheet.Rank)), eventID).Scan(&reservartionNum); err != nil {
 			return err
 		}
 
-		reservartionNum++
-		if _, err := tx.Exec("UPDATE events SET reservartion_num = ? WHERE id = ?", reservartionNum, eventID); err != nil {
+		reservartionNum--
+		if _, err := tx.Exec("UPDATE events SET reservartion_num_%s = ? WHERE id = ?", strings.ToLower(sheet.Rank)); err != nil {
 			tx.Rollback()
 			return err
 		}
