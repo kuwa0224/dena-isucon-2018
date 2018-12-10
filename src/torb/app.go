@@ -441,6 +441,16 @@ func main() {
 		}
 		defer rows.Close()
 
+		events, err := getEvents(true)
+		if err != nil {
+			return err
+		}
+
+		eventMap := map[int64]*Event{}
+		for _, e := range events {
+			eventMap[e.ID] = e
+		}
+
 		var recentReservations []Reservation
 		for rows.Next() {
 			var reservation Reservation
@@ -449,9 +459,9 @@ func main() {
 				return err
 			}
 
-			event, err := getEvent(reservation.EventID, -1)
-			if err != nil {
-				return err
+			event, ok := eventMap[reservation.EventID]
+			if !ok {
+				return fmt.Errorf("event not exists: id=%d", reservation.EventID)
 			}
 			price := event.Sheets[sheet.Rank].Price
 			event.Sheets = nil
