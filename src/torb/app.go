@@ -37,9 +37,9 @@ type Event struct {
 	ClosedFg bool   `json:"closed,omitempty"`
 	Price    int64  `json:"price,omitempty"`
 
-	Total           int                `json:"total"`
-	Remains         int                `json:"remains"`
-	Sheets          map[string]*Sheets `json:"sheets,omitempty"`
+	Total             int                `json:"total"`
+	Remains           int                `json:"remains"`
+	Sheets            map[string]*Sheets `json:"sheets,omitempty"`
 	ReservartionNum_S int                `json:"-"`
 	ReservartionNum_A int                `json:"-"`
 	ReservartionNum_B int                `json:"-"`
