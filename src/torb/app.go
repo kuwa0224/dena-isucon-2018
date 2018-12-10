@@ -37,10 +37,13 @@ type Event struct {
 	ClosedFg bool   `json:"closed,omitempty"`
 	Price    int64  `json:"price,omitempty"`
 
-	Total           int                `json:"total"`
-	Remains         int                `json:"remains"`
-	Sheets          map[string]*Sheets `json:"sheets,omitempty"`
-	ReservartionNum int                `json:"reservartion_num,omitempty"`
+	Total             int                `json:"total"`
+	Remains           int                `json:"remains"`
+	Sheets            map[string]*Sheets `json:"sheets,omitempty"`
+	ReservartionNum_S int                `json:"-"`
+	ReservartionNum_A int                `json:"-"`
+	ReservartionNum_B int                `json:"-"`
+	ReservartionNum_C int                `json:"-"`
 }
 
 type Sheets struct {
@@ -201,7 +204,7 @@ func getEvents(all bool) ([]*Event, error) {
 	var events []*Event
 	for rows.Next() {
 		var event Event
-		if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price, &event.ReservartionNum); err != nil {
+		if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price, &event.ReservartionNum_S,&event.ReservartionNum_A,&event.ReservartionNum_B,&event.ReservartionNum_C); err != nil {
 			return nil, err
 		}
 		if !all && !event.PublicFg {
@@ -214,21 +217,26 @@ func getEvents(all bool) ([]*Event, error) {
 		event.Sheets["B"].Price = event.Price + 1000
 		event.Sheets["C"].Price = event.Price
 
-		event.Total = 1000
-		event.Remains = 1000 - event.ReservartionNum
+		event.Sheets["S"].Remains = 50 - event.ReservartionNum_S
+		event.Sheets["A"].Remains = 150 - event.ReservartionNum_A
+		event.Sheets["B"].Remains = 300 - event.ReservartionNum_B
+		event.Sheets["C"].Remains = 500 - event.ReservartionNum_C
+		event.Remains = event.Sheets["S"].Remains + event.Sheets["A"].Remains + event.Sheets["B"].Remains + event.Sheets["C"].Remains
 
+		event.Total = 1000
 		for k := range event.Sheets {
 			event.Sheets[k].Detail = nil
 		}
 
 		events = append(events, &event)
 	}
+
 	return events, nil
 }
 
 func getEvent(eventID, loginUserID int64) (*Event, error) {
 	var event Event
-	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price, &event.ReservartionNum); err != nil {
+	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price, &event.ReservartionNum_S,&event.ReservartionNum_A,&event.ReservartionNum_B,&event.ReservartionNum_C); err != nil {
 		return nil, err
 	}
 	event.Sheets = map[string]*Sheets{
@@ -277,7 +285,6 @@ func sanitizeEvent(e *Event) *Event {
 	sanitized.Price = 0
 	sanitized.PublicFg = false
 	sanitized.ClosedFg = false
-	sanitized.ReservartionNum = 0
 	return &sanitized
 }
 
