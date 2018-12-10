@@ -670,11 +670,6 @@ func main() {
 
 			break
 		}
-		log.Println(echo.Map{
-			"id":         reservationID,
-			"sheet_rank": params.Rank,
-			"sheet_num":  sheet.Num,
-		})
 		return c.JSON(202, echo.Map{
 			"id":         reservationID,
 			"sheet_rank": params.Rank,
