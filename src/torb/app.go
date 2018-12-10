@@ -210,8 +210,8 @@ func getEvents(all bool) ([]*Event, error) {
 		events = append(events, &event)
 	}
 	for i, v := range events {
-		event, err := getEventForTop(v.ID, -1)
-		if err != nil {
+		var event *Event
+		if err := db.QueryRow("SELECT * FROM events WHERE id = ?", v.ID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
 			return nil, err
 		}
 
@@ -228,14 +228,6 @@ func getEvents(all bool) ([]*Event, error) {
 		events[i] = event
 	}
 	return events, nil
-}
-
-func getEventForTop(eventID, loginUserID int64) (*Event, error) {
-	var event Event
-	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
-		return nil, err
-	}
-	return &event, nil
 }
 
 func getEvent(eventID, loginUserID int64) (*Event, error) {
