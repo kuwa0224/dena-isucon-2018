@@ -37,10 +37,10 @@ type Event struct {
 	ClosedFg bool   `json:"closed,omitempty"`
 	Price    int64  `json:"price,omitempty"`
 
-	Total   int                `json:"total"`
-	Remains int                `json:"remains"`
-	Sheets  map[string]*Sheets `json:"sheets,omitempty"`
-	ReservartionNum int `json:"reservartion_num"`
+	Total           int                `json:"total"`
+	Remains         int                `json:"remains"`
+	Sheets          map[string]*Sheets `json:"sheets,omitempty"`
+	ReservartionNum int                `json:"reservartion_num"`
 }
 
 type Sheets struct {
@@ -237,7 +237,6 @@ func getEventForTop(eventID, loginUserID int64) (*Event, error) {
 	}
 	return &event, nil
 }
-
 
 func getEvent(eventID, loginUserID int64) (*Event, error) {
 	var event Event
