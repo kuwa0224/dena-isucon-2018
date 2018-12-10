@@ -215,6 +215,7 @@ func getEvents(all bool) ([]*Event, error) {
 		event.Sheets["C"].Price = event.Price
 
 		event.Remains = event.ReservartionNum
+		event.Total = 1000
 
 		for k := range event.Sheets {
 			event.Sheets[k].Detail = nil
