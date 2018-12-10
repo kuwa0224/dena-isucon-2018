@@ -204,7 +204,7 @@ func getEvents(all bool) ([]*Event, error) {
 	var events []*Event
 	for rows.Next() {
 		var event Event
-		if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price, &event.ReservartionNum_S,&event.ReservartionNum_A,&event.ReservartionNum_B,&event.ReservartionNum_C); err != nil {
+		if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price, &event.ReservartionNum_S, &event.ReservartionNum_A, &event.ReservartionNum_B, &event.ReservartionNum_C); err != nil {
 			return nil, err
 		}
 		if !all && !event.PublicFg {
@@ -243,7 +243,7 @@ func getEvents(all bool) ([]*Event, error) {
 
 func getEvent(eventID, loginUserID int64) (*Event, error) {
 	var event Event
-	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price, &event.ReservartionNum_S,&event.ReservartionNum_A,&event.ReservartionNum_B,&event.ReservartionNum_C); err != nil {
+	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price, &event.ReservartionNum_S, &event.ReservartionNum_A, &event.ReservartionNum_B, &event.ReservartionNum_C); err != nil {
 		return nil, err
 	}
 	event.Sheets = map[string]*Sheets{
@@ -740,7 +740,7 @@ func main() {
 		}
 
 		reservartionNum--
-		if _, err := tx.Exec("UPDATE events SET reservartion_num_%s = ? WHERE id = ?", strings.ToLower(sheet.Rank)); err != nil {
+		if _, err := tx.Exec(fmt.Sprintf("UPDATE events SET reservartion_num_%s = ? WHERE id = ?", strings.ToLower(sheet.Rank))); err != nil {
 			tx.Rollback()
 			return err
 		}
