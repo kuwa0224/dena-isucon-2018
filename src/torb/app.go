@@ -40,7 +40,7 @@ type Event struct {
 	Total           int                `json:"total"`
 	Remains         int                `json:"remains"`
 	Sheets          map[string]*Sheets `json:"sheets,omitempty"`
-	ReservartionNum int                `json:"reservartion_num"`
+	ReservartionNum int                `json:"reservartion_num,omitempty"`
 }
 
 type Sheets struct {
@@ -277,6 +277,7 @@ func sanitizeEvent(e *Event) *Event {
 	sanitized.Price = 0
 	sanitized.PublicFg = false
 	sanitized.ClosedFg = false
+	sanitized.ReservartionNum = 0
 	return &sanitized
 }
 
