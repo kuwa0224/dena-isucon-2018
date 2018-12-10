@@ -208,6 +208,7 @@ func getEvents(all bool) ([]*Event, error) {
 			continue
 		}
 
+		event.Sheets = map[string]*Sheets{"S": {}, "A": {}, "B": {}, "C": {}}
 		event.Sheets["S"].Price = event.Price + 5000
 		event.Sheets["A"].Price = event.Price + 3000
 		event.Sheets["B"].Price = event.Price + 1000
