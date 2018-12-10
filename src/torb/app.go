@@ -37,9 +37,10 @@ type Event struct {
 	ClosedFg bool   `json:"closed,omitempty"`
 	Price    int64  `json:"price,omitempty"`
 
-	Total   int                `json:"total"`
-	Remains int                `json:"remains"`
-	Sheets  map[string]*Sheets `json:"sheets,omitempty"`
+	Total           int                `json:"total"`
+	Remains         int                `json:"remains"`
+	Sheets          map[string]*Sheets `json:"sheets,omitempty"`
+	ReservartionNum int                `json:"reservartion_num"`
 }
 
 type Sheets struct {
@@ -206,17 +207,19 @@ func getEvents(all bool) ([]*Event, error) {
 		if !all && !event.PublicFg {
 			continue
 		}
-		events = append(events, &event)
-	}
-	for i, v := range events {
-		event, err := getEvent(v.ID, -1)
-		if err != nil {
-			return nil, err
-		}
+
+		event.Sheets["S"].Price = event.Price + 5000
+		event.Sheets["A"].Price = event.Price + 3000
+		event.Sheets["B"].Price = event.Price + 1000
+		event.Sheets["C"].Price = event.Price
+
+		event.Remains = event.ReservartionNum
+
 		for k := range event.Sheets {
 			event.Sheets[k].Detail = nil
 		}
-		events[i] = event
+
+		events = append(events, &event)
 	}
 	return events, nil
 }
