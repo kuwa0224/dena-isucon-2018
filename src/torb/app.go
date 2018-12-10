@@ -651,7 +651,7 @@ func main() {
 				continue
 			}
 
-			if _, err := tx.Exec("INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)", eventID, sheet.ID, user.ID, time.Now().UTC().Format("2006-01-02 15:04:05.000000")); err != nil {
+			if res, err := tx.Exec("INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)", eventID, sheet.ID, user.ID, time.Now().UTC().Format("2006-01-02 15:04:05.000000")); err != nil {
 				tx.Rollback()
 				log.Println("re-try: rollback by", err)
 				continue
