@@ -740,7 +740,7 @@ func main() {
 		}
 
 		reservartionNum--
-		if _, err := tx.Exec(fmt.Sprintf("UPDATE events SET reservartion_num_%s = ? WHERE id = ?", strings.ToLower(sheet.Rank))); err != nil {
+		if _, err := tx.Exec(fmt.Sprintf("UPDATE events SET reservartion_num_%s = ? WHERE id = ?", strings.ToLower(sheet.Rank)), eventID); err != nil {
 			tx.Rollback()
 			return err
 		}
